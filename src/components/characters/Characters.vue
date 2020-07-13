@@ -9,7 +9,7 @@
 
       <div class="form-group text-left">
         <label for="race">Race</label>
-        <select name="race" v-model="newCharacter.race" class="form-control">
+        <select name="race" v-model="newCharacter.race" class="form-control" required>
           <option value="orc">Orc</option>
           <option value="tauren">Tauren</option>
           <option value="troll">Troll</option>
@@ -19,7 +19,7 @@
 
       <div class="form-group text-left">
         <label for="class">Class</label>
-        <select name="class" v-model="newCharacter.ch_class" class="form-control">
+        <select name="class" v-model="newCharacter.ch_class" class="form-control" required>
           <option value="druid">Druid</option>
           <option value="hunter">Hunter</option>
           <option value="mage">Mage</option>
@@ -119,7 +119,7 @@ export default {
       if (!value) {
         return
       }
-      this.createCharacter(this.newCharacter, this.selectedRoles)
+      this.createCharacter({ char: this.newCharacter, roles: this.selectedRoles })
         .then(() => {
           this.newCharacter = []
           this.selectedRoles = []

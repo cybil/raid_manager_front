@@ -75,10 +75,10 @@ const mutations = {
     state.userCharacters.push(char)
   },
   SET_CHARACTERS: (state, chars) => {
-    state.allCharacters.push(chars)
+    state.allCharacters = chars
   },
   DELETE_USER_CHARACTER: (state, char) => {
-    state.userCharacters.splice(char.indexOf(char), 1)
+    state.userCharacters.splice(state.userCharacters.indexOf(char), 1)
   },
   SET_ROSTERS: (state, rosters) => {
     state.rosters = rosters
@@ -159,13 +159,13 @@ const actions = {
         store.commit('SET_GLOBAL_ERROR', error.response.data.error || 'Cannot fetch all characters')
       })
   },
-  createCharacter: (store, newCharacter, roles) => {
+  createCharacter: (store, newCharacter) => {
     return securedAxiosInstance.post('/api/v1/characters', {
       character: {
-        name: newCharacter.name,
-        race: newCharacter.race,
-        ch_class: newCharacter.ch_class,
-        roles: roles
+        name: newCharacter.char.name,
+        race: newCharacter.char.race,
+        ch_class: newCharacter.char.ch_class,
+        roles: newCharacter.roles
       }
     }).then(response => {
       store.commit('ADD_USER_CHARACTER', response.data)
@@ -283,6 +283,9 @@ new Vue({
   securedAxiosInstance,
   plainAxiosInstance,
   components: { App },
-  beforeCreate () { this.$store.commit('initialiseStore') },
+  beforeCreate () {
+    this.$store.commit('initialiseStore')
+    this.$store.dispatch('getAllCharacters')
+  },
   template: '<App/>'
 })

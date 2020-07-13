@@ -3,6 +3,7 @@ import Router from 'vue-router'
 import Signin from '@/components/Signin.vue'
 import Signup from '@/components/Signup.vue'
 import Characters from '@/components/characters/Characters.vue'
+import AllCharacters from '@/components/characters/AllCharacters.vue'
 import Rosters from '@/components/rosters/Rosters.vue'
 import Roster from '@/components/rosters/Roster.vue'
 import BasicCompos from '@/components/basic_compos/BasicCompos.vue'
@@ -27,6 +28,11 @@ export default new Router({
       path: '/characters',
       name: 'Characters',
       component: Characters
+    },
+    {
+      path: '/characters/all',
+      name: 'AllCharacters',
+      component: AllCharacters
     },
     {
       path: '/rosters/:id',

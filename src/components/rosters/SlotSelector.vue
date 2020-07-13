@@ -119,6 +119,8 @@
 </template>
 
 <script>
+import { mapActions, mapState } from 'vuex'
+
 export default {
   name: 'SlotSelector',
   props: {
@@ -128,10 +130,6 @@ export default {
     },
     rosterId: {
       type: Number,
-      required: true
-    },
-    characters: {
-      type: Array,
       required: true
     }
   },
@@ -153,8 +151,9 @@ export default {
     this.selectedChar = this.currentSlot.character_id
   },
   computed: {
+    ...mapState(['allCharacters']),
     availableCharacters () {
-      return this.characters.filter(char => char.roles.includes(this.currentSlot.role) && char.ch_class === this.currentSlot.ch_class)
+      return this.allCharacters.filter(char => char.roles.includes(this.currentSlot.role) && char.ch_class === this.currentSlot.ch_class)
     },
     openedRoleSelector () {
       return this.openedRole ? '' : 'hide'
@@ -167,6 +166,9 @@ export default {
     }
   },
   methods: {
+    ...mapActions([
+      'updateRosterSlot'
+    ]),
     classFor (chClass) {
       return `bg-${chClass}`
     },
@@ -177,13 +179,13 @@ export default {
       this.error = ''
     },
     updateCurrentSlot () {
-      this.$http.secured.patch(`/api/v1/rosters/${this.rosterId}/update_slot`, {
-        slot_id: this.currentSlot.id,
-        character_id: this.selectedChar,
-        role: this.selectedRole,
-        goal: this.selectedGoal,
-        ch_class: this.selectedClass,
-        roster_id: this.rosterId
+      this.updateRosterSlot({
+        currentSlotId: this.currentSlot.id,
+        selectedChar: this.selectedChar,
+        selectedRole: this.selectedRole,
+        selectedGoal: this.selectedGoal,
+        selectedClass: this.selectedClass,
+        rosterId: this.rosterId
       }).then(response => {
         this.currentSlot = Object.values(response.data.template).find(slot => slot.id === this.currentSlot.id)
         this.selectedRole = this.currentSlot.role

@@ -1,6 +1,5 @@
 <template>
   <div>
-    <div v-if="error" class="alert alert-danger col-md-11 mx-auto">{{ error }}</div>
     <h3>Add a new Basic compo</h3>
     <form @submit.prevent="addCompo" class="col-md-8 mx-auto">
       <div class="form-group">
@@ -32,7 +31,7 @@
           <th></th>
         </thead>
         <tbody>
-          <tr v-for="compo in compos" :key="compo.id" :compo="compo">
+          <tr v-for="compo in basicCompos" :key="compo.id" :compo="compo">
             <td>{{compo.name}}</td>
             <td>{{Object.values(compo.template).length}}</td>
             <td>-</td>
@@ -47,51 +46,43 @@
 </template>
 
 <script>
+import { mapActions, mapState } from 'vuex'
+
 export default {
   name: 'BasicCompos',
   data () {
     return {
-      compos: [],
-      newCompo: [],
-      error: ''
+      newCompo: []
     }
   },
   created () {
     if (!localStorage.signedIn) {
       this.$router.replace('/')
     } else {
-      this.$http.secured.get('/api/v1/basic_compos')
-        .then(response => {
-          this.compos = response.data
-        })
-        .catch(error => this.setError(error, 'Something went wrong'))
+      this.getBasicCompos()
     }
   },
+  computed: {
+    ...mapState(['basicCompos'])
+  },
   methods: {
-    setError (error, text) {
-      this.error = error.response
-    },
+    ...mapActions([
+      'getBasicCompos',
+      'createBasicCompo',
+      'deleteBasicCompo'
+    ]),
     addCompo () {
       const value = this.newCompo
       if (!value) {
         return
       }
-      this.$http.secured.post('/api/v1/basic_compos', {
-        basic_compo: {
-          name: this.newCompo.name
-        },
-        size: this.newCompo.size
-      }).then(response => {
-        this.compos.push(response.data)
-        this.newCompo = []
-      }).catch(error => this.setError(error, 'Cannot add the compo'))
+      this.createBasicCompo(this.newCompo)
+        .then(response => {
+          this.newCompo = []
+        })
     },
     removeCompo (compo) {
-      this.$http.secured.delete(`/api/v1/basic_compos/${compo.id}`)
-        .then(response => {
-          this.compos.splice(this.compos.indexOf(compo), 1)
-        })
-        .catch(error => this.setError(error, 'Cannot delete the compo'))
+      this.deleteBasicCompo(compo)
     },
     editCompo (compo) {
       this.$router.replace(`/basic-compos/${compo.id}`)

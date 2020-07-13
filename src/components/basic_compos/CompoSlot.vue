@@ -102,6 +102,8 @@
 </template>
 
 <script>
+import { mapActions, mapState } from 'vuex'
+
 export default {
   name: 'CompoSlot',
   props: {
@@ -142,6 +144,9 @@ export default {
     }
   },
   methods: {
+    ...mapActions([
+      'updateCompoSlot'
+    ]),
     classFor (chClass) {
       return `bg-${chClass}`
     },
@@ -153,11 +158,12 @@ export default {
       this.error = (error.response && error.response.data) || error.message || text
     },
     updateCurrentSlot () {
-      this.$http.secured.patch(`/api/v1/basic_compos/${this.compoId}/update_slot`, {
-        slot_id: this.currentSlot.id,
-        ch_class: this.selectedClass,
-        role: this.selectedRole,
-        goal: this.selectedGoal
+      this.updateCompoSlot({
+        compoId: this.compoId,
+        currentSlotId: this.currentSlot.id,
+        selectedClass: this.selectedClass,
+        selectedRole: this.selectedRole,
+        selectedGoal: this.selectedGoal
       }).then(response => {
         this.currentSlot = Object.values(response.data.template).find(slot => slot.id === this.currentSlot.id)
         this.setupSlot()

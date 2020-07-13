@@ -5,15 +5,16 @@
     </div>
 
     <div class="flex flex-items-center">
-      <router-link v-if="!isSignedIn()" to="/signin" class="nav-link">Sign In</router-link>
-      <router-link v-if="!isSignedIn()" to="/signup" class="nav-link">Sign Up</router-link>
-      <router-link v-if="isSignedIn()" to="/characters" class="nav-link">Characters</router-link>
-      <router-link v-if="isSignedIn()" to="/rosters" class="nav-link">Rosters</router-link>
-      <router-link v-if="isSignedIn()" to="/basic-compos" class="nav-link">Basic compos</router-link>
-      <a v-if="isSignedIn()" href="javascript:void(0);" @click.prevent="signOut" class="nav-link">Sign out</a>
+      <router-link v-if="!isSignedIn" to="/" class="nav-link">Sign In</router-link>
+      <router-link v-if="!isSignedIn" to="/signup" class="nav-link">Sign Up</router-link>
+      <router-link v-if="isSignedIn" to="/characters" class="nav-link">My Characters</router-link>
+      <router-link v-if="isSignedIn && currentUser.user.officer" to="/rosters" class="nav-link">Rosters</router-link>
+      <router-link v-if="isSignedIn && currentUser.user.officer" to="/basic-compos" class="nav-link">Basic compos</router-link>
+      <router-link v-if="isSignedIn && currentUser.user.officer" to="/characters/all" class="nav-link">All Characters</router-link>
+      <a v-if="isSignedIn" href="javascript:void(0);" @click.prevent="doSignout()" class="nav-link">Sign out</a>
 
-      <div class="nav-link">
-        {{currentUser}}
+      <div v-if="currentUser.csrf" class="nav-link">
+        Connected as: {{currentUser.user.name}}
       </div>
     </div>
 
@@ -21,35 +22,31 @@
 </template>
 
 <script>
+import { mapActions, mapGetters } from 'vuex'
+
 export default {
   name: 'Header',
-  created () {
-    this.signedIn()
-  },
   computed: {
-    currentUser () {
-      return localStorage.email
+    ...mapGetters({
+      currentUser: 'currentUser'
+    }),
+    isSignedIn () {
+      return this.currentUser.csrf || localStorage.csrf
     }
   },
   methods: {
-    isSignedIn () {
-      return localStorage.signedIn
-    },
+    ...mapActions({
+      signout: 'signout'
+    }),
     setError (error, text) {
       this.error = (error.response && error.response.data && error.response.data.error) || text
     },
-    signedIn () {
-      return localStorage.signedIn
-    },
-    signOut () {
-      this.$http.secured.delete('/signout')
-        .then(response => {
-          delete localStorage.csrf
-          delete localStorage.email
-          localStorage.signedIn = false
-          this.$router.replace('/')
-        })
-        .catch(error => this.setError(error, 'Cannot sign out'))
+    doSignout () {
+      this.signout().then(() => {
+        delete localStorage.csrf
+        delete localStorage.signedIn
+        this.$router.push('/')
+      })
     }
   }
 }

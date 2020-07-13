@@ -1,6 +1,5 @@
 <template>
   <div>
-    <div v-if="error" class="alert alert-danger col-md-11 mx-auto">{{ error }}</div>
     <h3>Add a new Character</h3>
 
     <form @submit.prevent="addCharacter" class="col-md-8 mx-auto">
@@ -65,7 +64,7 @@
           <th></th>
         </thead>
         <tbody>
-          <tr v-for="char in characters" :key="char.id" :char="char">
+          <tr v-for="char in userCharacters" :key="char.id" :char="char">
             <td>{{char.name}}</td>
             <td>{{char.race.toUpperCase()}}</td>
             <td><b :class="colorForClass(char.ch_class)">{{char.ch_class.toUpperCase()}}</b></td>
@@ -83,29 +82,32 @@
 </template>
 
 <script>
+import { mapActions, mapState } from 'vuex'
+
 export default {
   name: 'Characters',
   data () {
     return {
-      characters: [],
       newCharacter: [],
-      editedCharacter: '',
-      selectedRoles: [],
-      error: null
+      selectedRoles: []
     }
   },
   created () {
-    if (!localStorage.signedIn) {
+    if (this.currentUser === {}) {
       this.$router.replace('/')
     } else {
-      this.$http.secured.get('/api/v1/characters')
-        .then(response => {
-          this.characters = response.data
-        })
-        .catch(error => this.setError(error, 'Something went wrong'))
+      this.getUserCharacters()
     }
   },
+  computed: {
+    ...mapState(['currentUser', 'userCharacters'])
+  },
   methods: {
+    ...mapActions({
+      getUserCharacters: 'getUserCharacters',
+      createCharacter: 'createCharacter',
+      deleteUserCharacter: 'deleteUserCharacter'
+    }),
     colorForClass (chClass) {
       return `text-${chClass}`
     },
@@ -117,36 +119,14 @@ export default {
       if (!value) {
         return
       }
-      this.$http.secured.post('/api/v1/characters', {
-        character: {
-          name: this.newCharacter.name,
-          race: this.newCharacter.race,
-          ch_class: this.newCharacter.ch_class,
-          roles: this.selectedRoles
-        }
-      }).then(response => {
-        this.characters.push(response.data)
-        this.newCharacter = []
-        this.selectedRoles = []
-      }).catch(error => this.setError(error, 'Cannot add the character'))
+      this.createCharacter(this.newCharacter, this.selectedRoles)
+        .then(() => {
+          this.newCharacter = []
+          this.selectedRoles = []
+        })
     },
     removeCharacter (character) {
-      this.$http.secured.delete(`/api/v1/characters/${character.id}`)
-        .then(response => {
-          this.characters.splice(this.characters.indexOf(character), 1)
-        })
-        .catch(error => this.setError(error, 'Cannot delete the character'))
-    },
-    editCharacter (character) {
-      this.editedCharacter = character
-    },
-    updateCharacter (character) {
-      this.editedCharacter = []
-      this.$http.secured.patch(`/api/v1/characters/${character.id}`, {
-        character: {
-          name: character.name
-        }
-      }).catch(error => this.setError(error, 'Cannot update the character'))
+      this.deleteUserCharacter(character)
     }
   }
 }

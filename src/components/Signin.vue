@@ -1,15 +1,13 @@
 <template>
   <div class="max-w-sm m-auto my-8">
+
     <div class="border p-10 rounded shadow">
       <h3 class="text-2xl mb-6">Sign In</h3>
 
-      <form @submit.prevent="signin">
-        <div v-if="error" class="text-red">
-          {{ error }}
-        </div>
+      <form @submit.prevent="doSignin">
         <div class="form-group">
-          <label for="email" class="label">Email</label>
-          <input type="email" v-model="email" class="form-control" id="email" placeholder="xxx@example.com">
+          <label for="name" class="label">Name</label>
+          <input type="name" v-model="name" class="form-control" id="name" placeholder="Your name">
         </div>
 
         <div class="form-group">
@@ -28,11 +26,13 @@
 </template>
 
 <script>
+import { mapActions, mapGetters } from 'vuex'
+
 export default {
   name: 'Signin',
   data () {
     return {
-      email: '',
+      name: '',
       password: '',
       error: ''
     }
@@ -43,36 +43,29 @@ export default {
   updated () {
     this.checkSignedIn()
   },
+  computed: {
+    ...mapGetters({
+      currentUser: 'currentUser'
+    })
+  },
   methods: {
-    signin () {
-      this.$http.plain.post('/signin', {
-        email: this.email,
-        password: this.password
+    ...mapActions({
+      signin: 'signin'
+    }),
+    doSignin () {
+      let that = this
+      this.signin({
+        name: that.name,
+        password: that.password
+      }).then((response) => {
+        that.checkSignedIn()
       })
-        .then(response => this.signinSuccessful(response))
-        .catch(response => this.signinFailed(response))
-    },
-    signinSuccessful (response) {
-      if (!response.data.csrf) {
-        this.signinFailed(response)
-        return
-      }
-      localStorage.csrf = response.data.csrf
-      localStorage.signedIn = true
-      localStorage.email = response.data.email
-      this.error = ''
-      this.$router.replace('/characters')
-    },
-    signinFailed (error) {
-      this.error = (error.response && error.response.data && error.response.data.error) || ''
-      delete localStorage.csrf
-      delete localStorage.email
-      // delete localStorage.signedIn
-      localStorage.signedIn = false
     },
     checkSignedIn () {
-      if (localStorage.signedIn) {
+      if (localStorage.csrf) {
         this.$router.replace('/characters')
+      } else if (this.$router.currentRoute.path !== '/') {
+        this.$router.replace('/')
       }
     }
   }

@@ -3,20 +3,17 @@
     <div class="border p-10 rounded shadow">
       <h3 class="text-2xl mb-6">Sign Up</h3>
 
-      <form @submit.prevent="signup">
-        <div v-if="error" class="text-red">
-          {{ error }}
-        </div>
+      <form @submit.prevent="doSignup()">
         <div class="form-group">
           <label for="ame" class="label">Name</label>
           <input type="text" v-model="name" class="form-control" id="email" placeholder="John">
         </div>
 
-        <div class="form-group">
+<!--         <div class="form-group">
           <label for="email" class="label">Email</label>
           <input type="email" v-model="email" class="form-control" id="email" placeholder="xxx@example.com">
         </div>
-
+ -->
         <div class="form-group">
           <label for="password" class="label">Password</label>
           <input type="password" v-model="password" class="form-control" id="password">
@@ -56,31 +53,12 @@ export default {
     this.checkSignedIn()
   },
   methods: {
-    signup () {
-      this.$http.plain.post('/signup', {
-        email: this.email,
+    doSignup () {
+      this.signup({
         name: this.name,
         password: this.password,
         password_confirmation: this.password_confirmation
       })
-        .then(response => this.signupSuccessful(response))
-        .catch(error => this.signupFailed(error))
-    },
-    signupSuccessful (response) {
-      if (!response.data.csrf) {
-        this.signupFailed(response)
-        return
-      }
-      localStorage.csrf = response.data.csrf
-      localStorage.signedIn = true
-      localStorage.email = response.data.email
-      this.error = ''
-      this.$router.replace('/characters')
-    },
-    signupFailed (error) {
-      this.error = (error.response && error.response.data && error.response.data.error) || 'Something went wrong'
-      delete localStorage.csrf
-      delete localStorage.signedIn
     },
     checkSignedIn () {
       if (localStorage.signedIn) {
